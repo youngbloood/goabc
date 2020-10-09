@@ -1,0 +1,2 @@
+# goabc
+goroutine sequential execution
