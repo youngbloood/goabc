@@ -8,9 +8,7 @@ import (
 
 var abcQueue *queues
 
-func init() {
-	abcQueue = newQueues(0, nil)
-}
+var _ Abcer = (*queues)(nil)
 
 type Func func()
 type queue struct {
@@ -65,7 +63,8 @@ func newQueues(length int, hook Hooker) *queues {
 	}
 }
 
-func (qs *queues) add(f func()) {
+// the same func can be added many times. [相同地址的函数可以被多次添加到队列中]
+func (qs *queues) Add(f Func) {
 	if len(qs.seqq) == 0 {
 		qs.seqq = append(qs.seqq, newQueue(f, nil))
 		return
@@ -73,44 +72,54 @@ func (qs *queues) add(f func()) {
 	qs.seqq = append(qs.seqq, newQueue(f, qs.seqq[len(qs.seqq)-1].nextNotify))
 }
 
-func (qs *queues) remove(f Func) {
+// the same func will be clear that same in slice. [队列中的相同的地址的函数都会被移除掉]
+func (qs *queues) Remove(f Func) {
+LOOP:
 	for i, fv := range qs.seqq {
-
 		rfv := reflect.ValueOf(fv.f)
 		rf := reflect.ValueOf(f)
+		if rfv.Pointer() == rf.Pointer() {
+			// 处理preNotify和nextNotify
+			if i == 0 && len(qs.seqq) > 1 {
+				qs.seqq[i+1].preNotify = nil
+			} else if i < len(qs.seqq)-1 {
+				qs.seqq[i+1].preNotify = qs.seqq[i-1].nextNotify
+			}
 
-		fmt.Println("11 = ", fmt.Sprintf("%v", rfv.String()))
-		fmt.Println("22 = ", fmt.Sprintf("%v", rf.Pointer()))
-
-		if reflect.DeepEqual(fv.f, f) {
 			qs.seqq = append(qs.seqq[:i], qs.seqq[i+1:]...)
-			break
+			goto LOOP
 		}
 	}
 }
 
-func (qs *queues) flush() {
+func (qs *queues) Flush() {
 	qs.seqq = make([]*queue, 0)
 }
 
-func (qs *queues) setHooker(hook Hooker) {
+func (qs *queues) SetHooker(hook Hooker) {
 	qs.hook = hook
 }
 
-func (qs *queues) start() {
+func (qs *queues) Start() {
 	for _, fv := range qs.seqq {
 		go fv.exec(false, qs.hook)
 	}
 }
 
-func (qs *queues) run() {
+func (qs *queues) Run() {
 	for _, fv := range qs.seqq {
 		fv.exec(true, qs.hook)
 	}
 }
 
-func (qs *queues) random() {
+func (qs *queues) Random() {
 	for _, fv := range qs.seqq {
 		go fv.exec(true, qs.hook)
+	}
+}
+
+func (qs *queues) print() {
+	for i, fv := range qs.seqq {
+		fmt.Printf("fv[%d] = %v\n", i, fv.f)
 	}
 }

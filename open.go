@@ -1,40 +1,58 @@
 package goabc
 
+func init() {
+	abcQueue = newQueues(0, nil)
+	iopen = &open{
+		abc: abcQueue,
+	}
+}
+
+var iopen *open
+
+type open struct {
+	abc Abcer
+}
+
+// Register . register the abc
+func Register(abc Abcer) {
+	iopen.abc = abc
+}
+
 // Add . add funcs into queue
 func Add(fs ...Func) {
 	for _, fv := range fs {
-		abcQueue.add(fv)
+		iopen.abc.Add(fv)
 	}
 }
 
 // Remove . remove funcs from queue
 func Remove(fs ...Func) {
 	for _, fv := range fs {
-		abcQueue.remove(fv)
+		iopen.abc.Remove(fv)
 	}
 }
 
 // Flush . flush all funcs
 func Flush() {
-	abcQueue.flush()
+	iopen.abc.Flush()
 }
 
 // Start . start the funcs with concurrent
 func Start() {
-	abcQueue.start()
+	iopen.abc.Start()
 }
 
 // Run . run the funcs with non-concurrent
 func Run() {
-	abcQueue.run()
+	iopen.abc.Run()
 }
 
 // Random . random run the func concurrent
 func Random() {
-	abcQueue.random()
+	iopen.abc.Random()
 }
 
 // SetHook . set a hook into queue
 func SetHook(hook Hooker) {
-	abcQueue.setHooker(hook)
+	iopen.abc.SetHooker(hook)
 }

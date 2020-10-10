@@ -9,15 +9,17 @@ import (
 )
 
 func initFunc() []goabc.Func {
-	list := make([]goabc.Func, 0)
-	for i := 0; i < 100; i++ {
-		a := i
-		list = append(list, func() {
-			fmt.Println(a)
-			panic(a)
-		})
+	return []goabc.Func{
+		func() { fmt.Println("11") },
+		func() { fmt.Println("22") },
+		func() { fmt.Println("33") },
+		func() { fmt.Println("44") },
+		func() { fmt.Println("55") },
+		func() { fmt.Println("66") },
+		func() { fmt.Println("77") },
+		func() { fmt.Println("88") },
+		func() { fmt.Println("99") },
 	}
-	return list
 }
 func TestStart(t *testing.T) {
 	funs := initFunc()
@@ -65,8 +67,7 @@ func TestFlushRandom(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	funs := initFunc()[:2]
-	t.Log(len(funs))
+	funs := initFunc()
 	goabc.Add(funs...)
 	goabc.Remove(funs[0])
 	goabc.Run()
