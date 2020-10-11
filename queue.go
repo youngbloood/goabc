@@ -1,7 +1,6 @@
 package goabc
 
 import (
-	"fmt"
 	"log"
 	"reflect"
 )
@@ -92,6 +91,8 @@ LOOP:
 	}
 }
 
+func (qs *queues) Sort() {}
+
 func (qs *queues) Flush() {
 	qs.seqq = make([]*queue, 0)
 }
@@ -101,12 +102,14 @@ func (qs *queues) SetHooker(hook Hooker) {
 }
 
 func (qs *queues) Start() {
+	qs.Sort()
 	for _, fv := range qs.seqq {
 		go fv.exec(false, qs.hook)
 	}
 }
 
 func (qs *queues) Run() {
+	qs.Sort()
 	for _, fv := range qs.seqq {
 		fv.exec(true, qs.hook)
 	}
@@ -115,11 +118,5 @@ func (qs *queues) Run() {
 func (qs *queues) Random() {
 	for _, fv := range qs.seqq {
 		go fv.exec(true, qs.hook)
-	}
-}
-
-func (qs *queues) print() {
-	for i, fv := range qs.seqq {
-		fmt.Printf("fv[%d] = %v\n", i, fv.f)
 	}
 }
